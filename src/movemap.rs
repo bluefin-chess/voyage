@@ -249,8 +249,7 @@ static PEXT_BISHOP_ATTACKS_XRAY: [SliderPext; 64] = init_pext_bishop_attacks_xra
   56, 57, 58, 59, 60, 61, 62, 63
 );
 
-
-mod lookup_switch {
+pub mod lookup_switch {
   use super::{attacks, slider_h_cond::get_slider_h_cond, slider_d1_cond::get_slider_d1_cond, slider_d2_cond::get_slider_d2_cond};
 
   const fn king(square: u64) -> u64 {
@@ -288,7 +287,7 @@ mod lookup_switch {
   }
 }
 
-mod lookup_hash {
+pub mod lookup_hash {
   const fn king(square: u64) -> u64 {
     super::attacks::KING_ATTACKS[square as usize]
   }
@@ -322,7 +321,7 @@ mod lookup_hash {
   }
 }
 
-mod lookup_pext {
+pub mod lookup_pext {
   const fn king(square: u64) -> u64 {
     super::attacks::KING_ATTACKS[square as usize]
   }
