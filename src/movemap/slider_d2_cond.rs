@@ -1,4 +1,4 @@
-pub const fn get_slider_d2_cond(slider_square: u8, occupy: u64) -> u64 {
+pub const fn get_slider_d2_cond(slider_square: u64, occupy: u64) -> u64 {
 	let mut result: u64;
 	match slider_square {
     0 => {
