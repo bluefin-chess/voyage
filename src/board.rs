@@ -5,6 +5,7 @@ type Bit = u64;
 type Square = u64;
 type map = u64;
 use std::arch::x86_64::{_tzcnt_u64, _blsr_u64};
+use std::fmt;
 
 fn square_of(x: u64) -> u64 {
   unsafe { _tzcnt_u64(x) }
@@ -186,6 +187,123 @@ impl BoardStatus {
   const fn default(&self) -> BoardStatus {
     return Self::new(true, false, true, true, true, true);
   }
+}
+
+// fen writer
+impl fmt::Display for BoardStatus {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "{}", if self.white_move { "w" } else { "b" })?;
+    write!(f, "{}", if self.has_enpassant_pawn { " ep:1" } else { " ep:0" })?;
+
+    if !self.w_castle_l && !self.w_castle_r && !self.b_castle_l && !self.b_castle_r {
+      write!(f, " castle:0")?;
+    } else {
+      write!(f, " castle:")?;
+      if self.w_castle_l { write!(f, "K")?; }
+      if self.w_castle_r { write!(f, "Q")?; }
+      if self.b_castle_l { write!(f, "q")?; }
+      if self.b_castle_r { write!(f, "k")?; }
+    }
+    Ok(())
+  }
+}
+
+enum FenField {
+  white,
+  has_ep,
+  w_castle_l,
+  w_castle_r,
+  b_castle_l,
+  b_castle_r
+}
+
+fn map3(val1: u64, val2: u64, val3: u64) -> String {
+  let mut board = vec!['o'; 64 * 3 + 3 * 8];
+
+  let mut c = 0;
+  for i in 0..64 {
+    let bitmask: u64 = (1u64 << 63) >> i;
+    if (bitmask & val1) != 0 {
+      board[c] = 'X';
+    } else {
+      board[c] = '.';
+    }
+
+    if (bitmask & val2) != 0 {
+      board[c + 9] = 'X';
+    } else {
+      board[c + 9] = '.';
+    }
+
+    if (bitmask & val3) != 0 {
+      board[c + 18] = 'X';
+    } else {
+      board[c + 18] = '.';
+    }
+
+    c += 1;
+
+    if (i + 1) % 8 == 0 {
+      board[c] = ' ';
+      board[c + 9] = ' ';
+      board[c + 18] = '\n';
+      c += 19;
+    }
+  }
+  board.iter().collect::<String>()
+}
+
+fn map2(val1: u64, val2: u64) -> String {
+  let mut board = vec!['o'; 64 * 2 + 2 * 8];
+
+  let mut c = 0;
+  for i in 0..64 {
+    let bitmask: u64 = (1u64 << 63) >> i;
+    if (bitmask & val1) != 0 {
+      board[c] = 'X';
+    } else {
+      board[c] = '.';
+    }
+
+    if (bitmask & val2) != 0 {
+      board[c + 9] = 'X';
+    } else {
+      board[c + 9] = '.';
+    }
+
+    c += 1;
+
+    if (i + 1) % 8 == 0 {
+      board[c] = ' ';
+      board[c + 9] = '\n';
+      c += 10;
+    }
+  }
+  board.iter().collect::<String>()
+}
+
+fn map1(value: u64) -> String {
+  let mut board = vec!['o'; 64 + 8];
+
+  let mut c = 0;
+  for i in 0..64 {
+    let bitmask: u64 = (1u64 << 63) >> i;
+
+    if (bitmask & value) != 0 {
+      board[c] = 'X';
+    } else {
+      board[c] = '.';
+    }
+
+    c += 1;
+
+    if (i + 1) % 8 == 0 {
+      board[c] = '\n';
+      c += 1;
+    }
+  }
+
+  board.iter().collect::<String>()
 }
 
 pub struct Board {
