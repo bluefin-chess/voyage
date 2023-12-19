@@ -396,6 +396,10 @@ impl FEN {
 
 }
 
+enum BoardPiece {
+  Pawn, Knight, Bishop, Rook, Queen, King
+}
+
 pub struct Board {
   b_pawn: u64, b_knight: u64, b_bishop: u64, b_rook: u64, b_queen: u64, b_king: u64,
   w_pawn: u64, w_knight: u64, w_bishop: u64, w_rook: u64, w_queen: u64, w_king: u64,
@@ -419,4 +423,45 @@ impl Board {
       occ
     }
   }
+}
+
+const fn map_bit_to_char(bit: u64, board: &Board) -> char {
+  if (bit & board.b_pawn) != 0 { return 'p'; }
+  if (bit & board.b_knight) != 0 { return 'n'; }
+  if (bit & board.b_bishop) != 0 { return 'b'; }
+  if (bit & board.b_rook) != 0 { return 'r'; }
+  if (bit & board.b_queen) != 0 { return 'q'; }
+  if (bit & board.b_king) != 0 { return 'k'; }
+  if (bit & board.w_pawn) != 0 { return 'P'; }
+  if (bit & board.w_knight) != 0 { return 'N'; }
+  if (bit & board.w_bishop) != 0 { return 'B'; }
+  if (bit & board.w_rook) != 0 { return 'R'; }
+  if (bit & board.w_queen) != 0 { return 'Q'; }
+  if (bit & board.w_king) != 0 { return 'K'; }
+  '.'
+}
+
+fn map(val1: u64, val2: u64, val3: &Board, val4: &Board) -> String {
+  let mut board = vec!['o'; 64 * 3 + 3 * 8];
+
+  let mut c = 0;
+  for i in 0..64 {
+    let bitmask: u64 = (1u64 << 63) >> i;
+
+    board[c] = if (bitmask & val1) != 0 { 'X' } else { '.' };
+    board[c + 9] = if (bitmask & val2) != 0 { 'X' } else { '.' };
+    board[c + 18] = map_bit_to_char(bitmask, val3);
+    board[c + 27] = map_bit_to_char(bitmask, val4);
+
+    c += 1;
+
+    if (i + 1) % 8 == 0 {
+      board[c] = ' ';
+      board[c + 9] = ' ';
+      board[c + 18] = ' ';
+      board[c + 27] = '\n';
+      c += 28;
+    }
+  }
+  board.iter().collect::<String>()
 }
