@@ -1,9 +1,12 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
 // use crate::movemap::lookup_hash; // uses multiply look up
 // use crate::movemap::lookup_switch; // uses ifchain to calculate seen squares
 use crate::movemap::lookup_pext; // Fastest on hardware pext CPUs, Ryzen 5000+ & Intel
 type Bit = u64;
 type Square = u64;
-type map = u64;
+type Map = u64;
 use std::arch::x86_64::{_tzcnt_u64, _blsr_u64};
 use std::fmt;
 
@@ -100,7 +103,7 @@ impl BoardStatus {
     0b10010000u64 << 56u64
   }
 
-  const fn can_castle_left(&self, attacked: map, occupied: map, rook: map) -> bool {
+  const fn can_castle_left(&self, attacked: Map, occupied: Map, rook: Map) -> bool {
     if self.white_move && self.w_castle_l {
       if (occupied & Self::W_NOT_OCCUPIED_L) != 0 { return false; }
       if (attacked & Self::W_NOT_ATTACKED_L) != 0 { return false; }
@@ -115,7 +118,7 @@ impl BoardStatus {
     false
   }
 
-  const fn can_castle_right(&self, attacked: map, occupied: map, rook: map) -> bool {
+  const fn can_castle_right(&self, attacked: Map, occupied: Map, rook: Map) -> bool {
     if self.white_move && self.w_castle_r {
       if (occupied & Self::W_NOT_OCCUPIED_R) != 0 { return false; }
       if (attacked & Self::W_NOT_ATTACKED_R) != 0 { return false; }
@@ -208,15 +211,6 @@ impl fmt::Display for BoardStatus {
   }
 }
 
-enum FenField {
-  white,
-  has_ep,
-  w_castle_l,
-  w_castle_r,
-  b_castle_l,
-  b_castle_r
-}
-
 fn map3(val1: u64, val2: u64, val3: u64) -> String {
   let mut board = vec!['o'; 64 * 3 + 3 * 8];
 
@@ -304,6 +298,77 @@ fn map1(value: u64) -> String {
   }
 
   board.iter().collect::<String>()
+}
+
+#[derive(PartialEq)]
+enum FenField {
+  White,
+  HasEp,
+  WCastleL,
+  WCastleR,
+  BCastleL,
+  BCastleR
+}
+
+pub struct FEN;
+
+impl FEN {
+  fn fen_enpassant(fen: &str) -> u64 {
+    let mut chars = fen.chars();
+
+    // Skip piece positions to active color field
+    while chars.next().unwrap_or(' ') != ' ' {}
+
+    // Skip space, set to active color
+    let col = chars.next().unwrap_or(' ');
+
+    // Skip castling
+    while chars.next().unwrap_or(' ') != ' ' {}
+
+    // En passant
+    let e_or_minus = chars.next().unwrap_or(' ');
+    if e_or_minus != '-' {
+      let file_offset = ('h' as u8 - e_or_minus as u8) as u64;
+      return match col {
+        'w' => 1u64 << (32 + file_offset),
+        'b' => 1u64 << (24 + file_offset),
+        _ => 0,
+      }
+    }
+    0
+  }
+
+  // parse info from fen string, I think it looks nicer than the C++ actually :)
+  fn fen_info(field: FenField, fen: &str) -> bool {
+    let mut chars = fen.chars();
+
+    // Skip piece positions to active color field
+    while chars.next().unwrap_or(' ') != ' ' {}
+
+    let col = chars.next().unwrap_or(' ');
+
+    match field {
+      FenField::White => col == 'w',
+      FenField::WCastleL | FenField::WCastleR | FenField::BCastleL | FenField::BCastleR => {
+        let mut cr = false;
+        while let Some(c) = chars.next() {
+          match c {
+            'K' if field == FenField::WCastleR => cr = true,
+            'Q' if field == FenField::WCastleL => cr = true,
+            'k' if field == FenField::BCastleR => cr = true,
+            'q' if field == FenField::BCastleL => cr = true,
+            ' ' => break,
+            _ => {}
+          }
+        }
+        cr
+      }
+      FenField::HasEp => {
+        chars.next().unwrap_or('-') != '-'
+      }
+    }
+  }
+
 }
 
 pub struct Board {
