@@ -369,6 +369,7 @@ impl FEN {
     }
   }
 
+  // Transform FEN character 'n' or 'Q' into bitmap where the bits correspond to the field
   fn fen_to_bmp(fen: &str, p: char) -> u64 {
     let mut field: u64 = 63;
 
@@ -377,16 +378,16 @@ impl FEN {
       match c {
         ' ' => break,
         '/' => {
-          field += 1;
           break;
         }
         '1'..='8' => {
-          field -= c.to_digit(10).unwrap() as u64 - 1;
+          field -= c.to_digit(10).unwrap() as u64 - 1; // field = field - (c - 1)
         }
         _ => {
           if c == p {
             res |= 1u64 << field;
           }
+          field -= 1;
         }
       }
     }
