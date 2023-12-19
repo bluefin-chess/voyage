@@ -7,7 +7,7 @@ use crate::movemap::lookup_pext; // Fastest on hardware pext CPUs, Ryzen 5000+ &
 type Bit = u64;
 type Square = u64;
 type Map = u64;
-use std::arch::x86_64::{_tzcnt_u64, _blsr_u64};
+use std::arch::x86_64::{_tzcnt_u64, _blsr_u64, _popcnt64};
 use std::fmt;
 
 fn square_of(x: u64) -> u64 {
@@ -367,6 +367,30 @@ impl FEN {
         chars.next().unwrap_or('-') != '-'
       }
     }
+  }
+
+  fn fen_to_bmp(fen: &str, p: char) -> u64 {
+    let mut field: u64 = 63;
+
+    let mut res: u64 = 0;
+    while let Some(c) = fen.chars().next() {
+      match c {
+        ' ' => break,
+        '/' => {
+          field += 1;
+          break;
+        }
+        '1'..='8' => {
+          field -= c.to_digit(10).unwrap() as u64 - 1;
+        }
+        _ => {
+          if c == p {
+            res |= 1u64 << field;
+          }
+        }
+      }
+    }
+    res
   }
 
 }
