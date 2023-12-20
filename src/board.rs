@@ -135,60 +135,60 @@ impl BoardStatus {
 
   const fn is_left_rook(&self, rook: Bit) -> bool {
     if self.white_move {
-      return rook == Self::W_ROOK_L;
+      rook == Self::W_ROOK_L
     } else {
-      rook == Self::B_ROOK_L      
+      rook == Self::B_ROOK_L
     }
   }
 
   const fn is_right_rook(&self, rook: Bit) -> bool {
     if self.white_move {
-      return rook == Self::W_ROOK_R;
+      rook == Self::W_ROOK_R
     } else {
-      return rook == Self::B_ROOK_R;
+      rook == Self::B_ROOK_R
     }
   }
 
   // Enable en passant for all pawn moves, part of pseudolegal generation.
   const fn pawn_push(&self) -> BoardStatus {
-    return Self::new(!self.white_move, true, self.w_castle_l, self.w_castle_r, self.b_castle_l, self.b_castle_r);
+    Self::new(!self.white_move, true, self.w_castle_l, self.w_castle_r, self.b_castle_l, self.b_castle_r)
   }
 
   // Disable castling rights for whoever's king moved.
   const fn king_move(&self) -> BoardStatus {
     if self.white_move {
-      return Self::new(!self.white_move, false, false, false, self.b_castle_l, self.b_castle_r);
+      Self::new(!self.white_move, false, false, false, self.b_castle_l, self.b_castle_r)
     } else {
-      return Self::new(!self.white_move, false, self.w_castle_l, self.w_castle_r, false, false);
+      Self::new(!self.white_move, false, self.w_castle_l, self.w_castle_r, false, false)
     }
   }
 
   // Disable left castling rights for mover.
   const fn rook_move_left(&self) -> BoardStatus {
     if self.white_move {
-      return Self::new(!self.white_move, false, false, self.w_castle_r, self.b_castle_l, self.b_castle_r);
+      Self::new(!self.white_move, false, false, self.w_castle_r, self.b_castle_l, self.b_castle_r)
     } else {
-      return Self::new(!self.white_move, false, self.w_castle_l, self.w_castle_r, false, self.b_castle_r);
+      Self::new(!self.white_move, false, self.w_castle_l, self.w_castle_r, false, self.b_castle_r)
     }
   }
 
   // Disable right castling rights for mover.
   const fn rook_move_right(&self) -> BoardStatus {
     if self.white_move {
-      return Self::new(!self.white_move, false, self.w_castle_l, false, self.b_castle_l, self.b_castle_r);
+      Self::new(!self.white_move, false, self.w_castle_l, false, self.b_castle_l, self.b_castle_r)
     } else {
-      return Self::new(!self.white_move, false, self.w_castle_l, self.w_castle_r, self.b_castle_l, false);
+      Self::new(!self.white_move, false, self.w_castle_l, self.w_castle_r, self.b_castle_l, false)
     }
   }
 
   // Non rook or king move, no castling rights lost.
   const fn silent_move(&self) -> BoardStatus {
-    return Self::new(!self.white_move, false, self.w_castle_l, self.w_castle_r, self.b_castle_l, self.b_castle_r);
+    Self::new(!self.white_move, false, self.w_castle_l, self.w_castle_r, self.b_castle_l, self.b_castle_r)
   }
 
   // Default state: white to move, not in check and all castling rights + not en passant.
   const fn default(&self) -> BoardStatus {
-    return Self::new(true, false, true, true, true, true);
+    Self::new(true, false, true, true, true, true)
   }
 }
 
@@ -310,9 +310,9 @@ enum FenField {
   BCastleR
 }
 
-pub struct FEN;
+pub struct Fen;
 
-impl FEN {
+impl Fen {
   fn fen_enpassant(fen: &str) -> u64 {
     let mut chars = fen.chars();
 
@@ -328,7 +328,7 @@ impl FEN {
     // En passant
     let e_or_minus = chars.next().unwrap_or(' ');
     if e_or_minus != '-' {
-      let file_offset = ('h' as u8 - e_or_minus as u8) as u64;
+      let file_offset = (b'h' - e_or_minus as u8) as u64;
       return match col {
         'w' => 1u64 << (32 + file_offset),
         'b' => 1u64 << (24 + file_offset),
@@ -351,7 +351,7 @@ impl FEN {
       FenField::White => col == 'w',
       FenField::WCastleL | FenField::WCastleR | FenField::BCastleL | FenField::BCastleR => {
         let mut cr = false;
-        while let Some(c) = chars.next() {
+        for c in chars.by_ref() {
           match c {
             'K' if field == FenField::WCastleR => cr = true,
             'Q' if field == FenField::WCastleL => cr = true,
@@ -369,7 +369,7 @@ impl FEN {
     }
   }
 
-  // Transform FEN character 'n' or 'Q' into bitmap where the bits correspond to the field
+  // Transform Fen character 'n' or 'Q' into bitmap where the bits correspond to the field
   fn fen_to_bmp(fen: &str, p: char) -> u64 {
     let mut field: u64 = 63;
 
@@ -408,6 +408,7 @@ pub struct Board {
 }
 
 impl Board {
+  #[allow(clippy::too_many_arguments)]
   const fn new(
     bp: u64, bn: u64, bb: u64, br: u64, bq: u64, bk: u64,
     wp: u64, wn: u64, wb: u64, wr: u64, wq: u64, wk: u64,
@@ -426,10 +427,10 @@ impl Board {
 
   fn from_fen(fen: &str) -> Self {
     Self::new(
-      FEN::fen_to_bmp(fen, 'p'), FEN::fen_to_bmp(fen, 'n'), FEN::fen_to_bmp(fen, 'b'), FEN::fen_to_bmp(fen, 'r'),
-      FEN::fen_to_bmp(fen, 'q'), FEN::fen_to_bmp(fen, 'k'),
-      FEN::fen_to_bmp(fen, 'P'), FEN::fen_to_bmp(fen, 'N'), FEN::fen_to_bmp(fen, 'B'), FEN::fen_to_bmp(fen, 'R'),
-      FEN::fen_to_bmp(fen, 'Q'), FEN::fen_to_bmp(fen, 'K'),
+      Fen::fen_to_bmp(fen, 'p'), Fen::fen_to_bmp(fen, 'n'), Fen::fen_to_bmp(fen, 'b'), Fen::fen_to_bmp(fen, 'r'),
+      Fen::fen_to_bmp(fen, 'q'), Fen::fen_to_bmp(fen, 'k'),
+      Fen::fen_to_bmp(fen, 'P'), Fen::fen_to_bmp(fen, 'N'), Fen::fen_to_bmp(fen, 'B'), Fen::fen_to_bmp(fen, 'R'),
+      Fen::fen_to_bmp(fen, 'Q'), Fen::fen_to_bmp(fen, 'K'),
     )
   }
 
