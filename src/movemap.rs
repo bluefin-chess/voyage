@@ -252,105 +252,105 @@ static PEXT_BISHOP_ATTACKS_XRAY: [SliderPext; 64] = init_pext_bishop_attacks_xra
 pub mod lookup_switch {
   use super::{attacks, slider_h_cond::get_slider_h_cond, slider_d1_cond::get_slider_d1_cond, slider_d2_cond::get_slider_d2_cond};
 
-  const fn king(square: u64) -> u64 {
+  pub const fn king(square: u64) -> u64 {
     attacks::KING_ATTACKS[square as usize]
   }
 
-  const fn knight(square: u64) -> u64 {
+  pub const fn knight(square: u64) -> u64 {
     attacks::KNIGHT_ATTACKS[square as usize]
   }
 
-  const fn rook(square: u64, occ: u64) -> u64 {
+  pub const fn rook(square: u64, occ: u64) -> u64 {
     get_slider_h_cond(square, occ) | get_slider_h_cond(square, occ)
   }
 
-  const fn rook_xray(square: u64, occ: u64) -> u64 {
+  pub const fn rook_xray(square: u64, occ: u64) -> u64 {
     let attacks = rook(square, occ);
     attacks | get_slider_h_cond(square, attacks)
   }
 
-  const fn bishop(square: u64, occ: u64) -> u64 {
+  pub const fn bishop(square: u64, occ: u64) -> u64 {
     get_slider_d1_cond(square, occ) | get_slider_d2_cond(square, occ)
   }
 
-  const fn bishop_xray(square: u64, occ: u64) -> u64 {
+  pub const fn bishop_xray(square: u64, occ: u64) -> u64 {
     let attacks = bishop(square, occ);
     attacks | get_slider_d1_cond(square, attacks) | get_slider_d2_cond(square, attacks)
   }
 
-  const fn queen(square: u64, occ: u64) -> u64 {
+  pub const fn queen(square: u64, occ: u64) -> u64 {
     rook(square, occ) | bishop(square, occ)
   }
 
-  const fn queen_xray(square: u64, occ: u64) -> u64 {
+  pub const fn queen_xray(square: u64, occ: u64) -> u64 {
     rook_xray(square, occ) | bishop_xray(square, occ)
   }
 }
 
 pub mod lookup_hash {
-  const fn king(square: u64) -> u64 {
+  pub const fn king(square: u64) -> u64 {
     super::attacks::KING_ATTACKS[square as usize]
   }
 
-  const fn knight(square: u64) -> u64 {
+  pub const fn knight(square: u64) -> u64 {
     super::attacks::KNIGHT_ATTACKS[square as usize]
   }
 
-  fn rook(square: u64, occ: u64) -> u64 {
+  pub fn rook(square: u64, occ: u64) -> u64 {
     super::HASH_ROOK_ATTACKS[square as usize].get(occ)
   }
 
-  fn rook_xray(square: u64, occ: u64) -> u64 {
+  pub fn rook_xray(square: u64, occ: u64) -> u64 {
     super::HASH_ROOK_ATTACKS_XRAY[square as usize].get(occ)
   }
 
-  fn bishop(square: u64, occ: u64) -> u64 {
+  pub fn bishop(square: u64, occ: u64) -> u64 {
     super::HASH_BISHOP_ATTACKS[square as usize].get(occ)
   }
 
-  fn bishop_xray(square: u64, occ: u64) -> u64 {
+  pub fn bishop_xray(square: u64, occ: u64) -> u64 {
     super::HASH_BISHOP_ATTACKS_XRAY[square as usize].get(occ)
   }
 
-  fn queen(square: u64, occ: u64) -> u64 {
+  pub fn queen(square: u64, occ: u64) -> u64 {
     rook(square, occ) | bishop(square, occ)
   }
 
-  fn queen_xray(square: u64, occ: u64) -> u64 {
+  pub fn queen_xray(square: u64, occ: u64) -> u64 {
     rook_xray(square, occ) | bishop_xray(square, occ)
   }
 }
 
 pub mod lookup_pext {
-  const fn king(square: u64) -> u64 {
+  pub const fn king(square: u64) -> u64 {
     super::attacks::KING_ATTACKS[square as usize]
   }
 
-  const fn knight(square: u64) -> u64 {
+  pub const fn knight(square: u64) -> u64 {
     super::attacks::KNIGHT_ATTACKS[square as usize]
   }
 
-  fn rook(square: u64, occ: u64) -> u64 {
+  pub fn rook(square: u64, occ: u64) -> u64 {
     super::PEXT_ROOK_ATTACKS[square as usize].get(occ)
   }
 
-  fn rook_xray(square: u64, occ: u64) -> u64 {
+  pub fn rook_xray(square: u64, occ: u64) -> u64 {
     super::PEXT_ROOK_ATTACKS_XRAY[square as usize].get(occ)
   }
 
-  fn bishop(square: u64, occ: u64) -> u64 {
+  pub fn bishop(square: u64, occ: u64) -> u64 {
     super::PEXT_BISHOP_ATTACKS[square as usize].get(occ)
   }
 
-  fn bishop_xray(square: u64, occ: u64) -> u64 {
+  pub fn bishop_xray(square: u64, occ: u64) -> u64 {
     super::PEXT_BISHOP_ATTACKS_XRAY[square as usize].get(occ)
   }
 
-  fn queen(square: u64, occ: u64) -> u64 {
+  pub fn queen(square: u64, occ: u64) -> u64 {
     rook(square, occ) | bishop(square, occ)
   }
 
-  fn queen_xray(square: u64, occ: u64) -> u64 {
+  pub fn queen_xray(square: u64, occ: u64) -> u64 {
     rook_xray(square, occ) | bishop_xray(square, occ)
   }
 }

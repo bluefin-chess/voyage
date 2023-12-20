@@ -3,7 +3,7 @@
 #![allow(unused_imports)]
 // use crate::movemap::lookup_hash; // uses multiply look up
 // use crate::movemap::lookup_switch; // uses ifchain to calculate seen squares
-use crate::movemap::lookup_pext; // Fastest on hardware pext CPUs, Ryzen 5000+ & Intel
+use crate::movemap::lookup_pext as lookup; // Fastest on hardware pext CPUs, Ryzen 5000+ & Intel
 type Bit = u64;
 type Square = u64;
 type Map = u64;
@@ -154,7 +154,7 @@ impl BoardStatus {
     Self::new(!self.white_move, true, self.w_castle_l, self.w_castle_r, self.b_castle_l, self.b_castle_r)
   }
 
-  // Disable castling rights for whoever's king moved.
+  // Disable castling rights for whoever's king moved.F
   const fn king_move(&self) -> BoardStatus {
     if self.white_move {
       Self::new(!self.white_move, false, false, false, self.b_castle_l, self.b_castle_r)
@@ -401,10 +401,10 @@ enum BoardPiece {
 }
 
 pub struct Board {
-  b_pawn: u64, b_knight: u64, b_bishop: u64, b_rook: u64, b_queen: u64, b_king: u64,
-  w_pawn: u64, w_knight: u64, w_bishop: u64, w_rook: u64, w_queen: u64, w_king: u64,
-  black: u64, white: u64,
-  occ: u64
+  pub b_pawn: u64, pub b_knight: u64, pub b_bishop: u64, pub b_rook: u64, pub b_queen: u64, pub b_king: u64,
+  pub w_pawn: u64, pub w_knight: u64, pub w_bishop: u64, pub w_rook: u64, pub w_queen: u64, pub w_king: u64,
+  pub black: u64, pub white: u64,
+  pub occ: u64
 }
 
 impl Board {
@@ -511,6 +511,102 @@ impl Board {
       Self::new(bp ^ mov, bn, bb, br, bq, bk,
         wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk)
     }
+  }
+
+
+
+  fn assert_board_move(before: &Board, after: &Board, is_taking: bool, is_white: bool) {
+    fn blackcount(board: &Board) -> i32 {
+      unsafe { _popcnt64(board.black as i64) }
+    }
+
+    fn whitecount(board: &Board) -> i32 {
+      unsafe { _popcnt64(board.white as i64) }
+    }
+
+    fn allcount(board: &Board) -> i32 {
+      unsafe { _popcnt64(board.occ as i64) }
+    }
+
+    debug_assert!(blackcount(before) + whitecount(before) == allcount(before), "Some squares are taken twice.");
+    debug_assert!(blackcount(after) + whitecount(after) == allcount(after), "Some squares are taken twice after a move.");
+    if is_taking {
+      debug_assert!(allcount(before) == allcount(after) + 1, "A piece was taken but not removed.");
+    } else {
+      debug_assert!(allcount(before) == allcount(after), "Piece count did not say the same after a non-capturing move.");
+    }
+    debug_assert!(after.b_king != 0, "Black king is missing.");
+    debug_assert!(after.w_king != 0, "White king is missing.");
+  
+    // TODO: check that king not in check after move
+    let kingpos = unsafe { _tzcnt_u64(if is_white { after.w_king } else { after.b_king }) };
+
+    let diagonal_check = lookup::bishop(kingpos, after.occ); // & EnemyBishopQueen()
+  }
+
+  fn move_piece(piece: BoardPiece, board: &Board, is_white: bool, is_taking: bool, from: u64, to: u64) -> Board {
+    let (bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk) = (
+      board.b_pawn, board.b_knight, board.b_bishop, board.b_rook, board.b_queen, board.b_king,
+      board.w_pawn, board.w_knight, board.w_bishop, board.w_rook, board.w_queen, board.w_king
+    );
+
+    let mov = from | to;
+
+    if is_taking {
+      let rem = !to;
+      if is_white {
+        debug_assert!((bk & mov) == 0, "Taking the black king is not legal.");
+        debug_assert!((to & board.white) == 0, "Cannot move to square with same white color piece.");
+        match piece {
+          BoardPiece::Pawn => { Board::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk, wp ^ mov, wn, wb, wr, wq, wk) }
+          BoardPiece::Knight => { Board::new(bp, bn & rem, bb & rem, br & rem, bq & rem, bk, wp, wn & mov, wb, wr, wq, wk) }
+          BoardPiece::Bishop => { Board::new(bp, bn, bb & rem, br & rem, bq & rem, bk, wp, wn, wb & mov, wr, wq, wk) }
+          BoardPiece::Rook => { Board::new(bp, bn, bb, br & rem, bq & rem, bk, wp, wn, wb, wr & mov, wq, wk) }
+          BoardPiece::Queen => { Board::new(bp, bn, bb, br, bq & rem, bk, wp, wn, wb, wr, wq & mov, wk) }
+          BoardPiece::King => { Board::new(bp, bn, bb, br, bq, bk & rem, wp, wn, wb, wr, wq, wk) }
+        }
+      } else {
+        debug_assert!((wk & mov) == 0, "Taking the white king is not legal.");
+        debug_assert!((to & board.black) == 0, "Cannot move to square with same black color piece.");
+        match piece {
+          BoardPiece::Pawn => { Board::new(bp, bn & rem, bb & rem, br & rem, bq & rem, bk, wp & rem, wn, wb, wr, wq, wk ^ mov) }
+          BoardPiece::Knight => { Board::new(bp, bn & rem, bb & rem, br & rem, bq & rem, bk, wp, wn & mov, wb, wr, wq, wk) }
+          BoardPiece::Bishop => { Board::new(bp, bn, bb & rem, br & rem, bq & rem, bk, wp, wn, wb & mov, wr, wq, wk) }
+          BoardPiece::Rook => { Board::new(bp, bn, bb, br & rem, bq & rem, bk, wp, wn, wb, wr & mov, wq, wk) }
+          BoardPiece::Queen => { Board::new(bp, bn, bb, br, bq & rem, bk, wp, wn, wb, wr, wq & mov, wk) }
+          BoardPiece::King => { Board::new(bp, bn, bb, br, bq, bk & rem, wp, wn, wb, wr, wq, wk ^ mov) }
+        }
+      }
+    } else {
+      #[allow(clippy::if_same_then_else)]
+      if is_white {
+        debug_assert!((bk & mov) == 0, "Moving the black king is not legal.");
+        debug_assert!((to & board.white) == 0, "Cannot move to square with same white color piece.");
+        match piece {
+          BoardPiece::Pawn => { Board::new(bp, bn, bb, br, bq, bk, wp ^ mov, wn, wb, wr, wq, wk) }
+          BoardPiece::Knight => { Board::new(bp, bn, bb, br, bq, bk, wp, wn ^ mov, wb, wr, wq, wk) }
+          BoardPiece::Bishop => { Board::new(bp, bn, bb, br, bq, bk, wp, wn, wb ^ mov, wr, wq, wk) }
+          BoardPiece::Rook => { Board::new(bp, bn, bb, br, bq, bk, wp, wn, wb, wr ^ mov, wq, wk) }
+          BoardPiece::Queen => { Board::new(bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq ^ mov, wk) }
+          BoardPiece::King => { Board::new(bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk ^ mov) }
+        }
+      } else {
+        debug_assert!((wk & mov) == 0, "Moving the white king is not legal.");
+        debug_assert!((to & board.black) == 0, "Cannot move to square with same black color piece.");
+        match piece {
+          BoardPiece::Pawn => { Board::new(bp ^ mov, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk) }
+          BoardPiece::Knight => { Board::new(bp, bn ^ mov, bb, br, bq, bk, wp, wn, wb, wr, wq, wk) }
+          BoardPiece::Bishop => { Board::new(bp, bn, bb ^ mov, br, bq, bk, wp, wn, wb, wr, wq, wk) }
+          BoardPiece::Rook => { Board::new(bp, bn, bb, br ^ mov, bq, bk, wp, wn, wb, wr, wq, wk) }
+          BoardPiece::Queen => { Board::new(bp, bn, bb, br, bq ^ mov, bk, wp, wn, wb, wr, wq, wk) }
+          BoardPiece::King => { Board::new(bp, bn, bb, br, bq, bk ^ mov, wp, wn, wb, wr, wq, wk) }
+        }
+      }
+    }
+  }
+
+  fn default() -> Self {
+    Self::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
   }
 }
 

@@ -1,8 +1,6 @@
 mod movemap;
-mod movegen;
 mod board;
-mod pseudomoves;
-
+mod movegen;
 fn main() {
   println!("Hello, world!");
 }
