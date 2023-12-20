@@ -657,3 +657,32 @@ fn map(val1: u64, val2: u64, val3: &Board, val4: &Board) -> String {
   }
   board.iter().collect::<String>()
 }
+
+fn position_to_template<F>(func: F, pos: &str, depth: i32)
+where
+  F: Fn(BoardStatus, &str, Board, i32),
+  {
+    let wh = Fen::fen_info(FenField::White, pos);
+    let ep = Fen::fen_info(FenField::HasEp, pos);
+    let bl = Fen::fen_info(FenField::BCastleL, pos);
+    let br = Fen::fen_info(FenField::BCastleR, pos);
+    let wl = Fen::fen_info(FenField::WCastleL, pos);
+    let wr = Fen::fen_info(FenField::WCastleR, pos);
+
+    for wh_ in 0..=1 {
+      for ep_ in 0..=1 {
+        for bl_ in 0..=1 {
+          for br_ in 0..=1 {
+            for wl_ in 0..=1 {
+              for wr_ in 0..=1 {
+                let status = BoardStatus::update(
+                  (wh_ << 5) | (ep_ << 4) | (wl_ << 3) | (wr_ << 2) | (bl_ << 1) | br_
+                );
+                func(status, pos, Board::from_fen(pos), depth);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
