@@ -15,13 +15,13 @@ fn square_of(x: u64) -> u64 {
   unsafe { _tzcnt_u64(x) }
 }
 
-struct BoardStatus {
-  white_move: bool,
-  has_enpassant_pawn: bool,
-  w_castle_l: bool,
-  w_castle_r: bool,
-  b_castle_l: bool,
-  b_castle_r: bool
+pub struct BoardStatus {
+  pub white_move: bool,
+  pub has_enpassant_pawn: bool,
+  pub w_castle_l: bool,
+  pub w_castle_r: bool,
+  pub b_castle_l: bool,
+  pub b_castle_r: bool
 }
 
 impl BoardStatus {
