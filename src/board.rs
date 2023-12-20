@@ -4,6 +4,7 @@
 // use crate::movemap::lookup_hash; // uses multiply look up
 // use crate::movemap::lookup_switch; // uses ifchain to calculate seen squares
 use crate::movemap::lookup_pext as lookup; // Fastest on hardware pext CPUs, Ryzen 5000+ & Intel
+use crate::movegen;
 type Bit = u64;
 type Square = u64;
 type Map = u64;
@@ -541,7 +542,13 @@ impl Board {
     // TODO: check that king not in check after move
     let kingpos = unsafe { _tzcnt_u64(if is_white { after.w_king } else { after.b_king }) };
 
-    let diagonal_check = lookup::bishop(kingpos, after.occ); // & EnemyBishopQueen()
+    let diagonal_check = lookup::bishop(kingpos, after.occ) & movegen::enemy_bishop_queen(after, is_white);
+    let straight_check = lookup::rook(kingpos, after.occ) & movegen::enemy_rook_queen(after, is_white);
+    let knight_check = lookup::knight(kingpos) & movegen::knights(after, is_white);
+
+    debug_assert!(diagonal_check == 0, "In check by bishop/queen after move.");
+    debug_assert!(straight_check == 0, "In check by rook/queen after move.");
+    debug_assert!(knight_check == 0, "In check by knight after move.");
   }
 
   fn move_piece(piece: BoardPiece, board: &Board, is_white: bool, is_taking: bool, from: u64, to: u64) -> Board {
