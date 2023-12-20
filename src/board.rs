@@ -484,6 +484,34 @@ impl Board {
       }
     }
   }
+
+  fn move_castle(board: Board, is_white: bool, king: u64, rook: u64) -> Self {
+    let w_king = board.w_king ^ (if is_white { king } else { 0 });
+    let w_rook = board.w_rook ^ (if is_white { rook } else { 0 });
+    let b_king = board.b_king ^ (if !is_white { king } else { 0 });
+    let b_rook = board.b_rook ^ (if !is_white { rook } else { 0 });
+    Self::new(board.b_pawn, board.b_knight, board.b_bishop, b_rook, board.b_queen, b_king,
+      board.w_pawn, board.w_knight, board.w_bishop, w_rook, board.w_queen, w_king)
+  }
+
+  fn move_enpassant(board: Board, is_white: bool, from: u64, to: u64, enemy: u64) -> Self {
+    let rem: u64 = !enemy;
+
+    let (bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk) = (
+      board.b_pawn, board.b_knight, board.b_bishop, board.b_rook, board.b_queen, board.b_king,
+      board.w_pawn, board.w_knight, board.w_bishop, board.w_rook, board.w_queen, board.w_king
+    );
+
+    let mov = from | to;
+
+    if is_white {
+      Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
+        wp ^ mov, wn, wb, wr, wq, wk)
+    } else {
+      Self::new(bp ^ mov, bn, bb, br, bq, bk,
+        wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk)
+    }
+  }
 }
 
 const fn map_bit_to_char(bit: u64, board: &Board) -> char {
