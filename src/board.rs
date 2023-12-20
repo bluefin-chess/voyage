@@ -423,6 +423,66 @@ impl Board {
       occ
     }
   }
+
+  fn from_fen(fen: &str) -> Self {
+    Self::new(
+      FEN::fen_to_bmp(fen, 'p'), FEN::fen_to_bmp(fen, 'n'), FEN::fen_to_bmp(fen, 'b'), FEN::fen_to_bmp(fen, 'r'),
+      FEN::fen_to_bmp(fen, 'q'), FEN::fen_to_bmp(fen, 'k'),
+      FEN::fen_to_bmp(fen, 'P'), FEN::fen_to_bmp(fen, 'N'), FEN::fen_to_bmp(fen, 'B'), FEN::fen_to_bmp(fen, 'R'),
+      FEN::fen_to_bmp(fen, 'Q'), FEN::fen_to_bmp(fen, 'K'),
+    )
+  }
+
+  // update board based on promotion
+  fn move_promote(piece: BoardPiece, is_white: bool, board: Board, from: u64, to: u64) -> Self {
+    let rem: u64 = !to;
+    let (bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk) = (
+      board.b_pawn, board.b_knight, board.b_bishop, board.b_rook, board.b_queen, board.b_king,
+      board.w_pawn, board.w_knight, board.w_bishop, board.w_rook, board.w_queen, board.w_king
+    );
+
+    if is_white {
+      match piece {
+        BoardPiece::Queen => {
+          return Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
+            wp ^ from, wn, wb, wr, wq ^ to, wk);
+        }
+        BoardPiece::Rook => {
+          return Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
+            wp ^ from, wn, wb, wr ^ to, wq, wk);
+        }
+        BoardPiece::Bishop => {
+          return Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
+            wp ^ from, wn, wb ^ to, wr, wq, wk);
+        }
+        BoardPiece::Knight => {
+          return Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
+            wp ^ from, wn ^ to, wb, wr, wq, wk);
+        }
+        _ => Self::new(bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk)
+      }
+    } else {
+      match piece {
+        BoardPiece::Queen => {
+          return Self::new(bp ^ from, bn, bb, br, bq ^ to, bk,
+            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk);
+        }
+        BoardPiece::Rook => {
+          return Self::new(bp ^ from, bn, bb, br ^ to, bq, bk,
+            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk);
+        }
+        BoardPiece::Bishop => {
+          return Self::new(bp ^ from, bn, bb ^ to, br, bq, bk,
+            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk);
+        }
+        BoardPiece::Knight => {
+          return Self::new(bp ^ from, bn ^ to, bb, br, bq, bk,
+            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk);
+        }
+        _=> Self::new(bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk)
+      }
+    }
+  }
 }
 
 const fn map_bit_to_char(bit: u64, board: &Board) -> char {
