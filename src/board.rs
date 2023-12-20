@@ -669,20 +669,10 @@ where
     let wl = Fen::fen_info(FenField::WCastleL, pos);
     let wr = Fen::fen_info(FenField::WCastleR, pos);
 
-    for wh_ in 0..=1 {
-      for ep_ in 0..=1 {
-        for bl_ in 0..=1 {
-          for br_ in 0..=1 {
-            for wl_ in 0..=1 {
-              for wr_ in 0..=1 {
-                let status = BoardStatus::update(
-                  (wh_ << 5) | (ep_ << 4) | (wl_ << 3) | (wr_ << 2) | (bl_ << 1) | br_
-                );
-                func(status, pos, Board::from_fen(pos), depth);
-              }
-            }
-          }
-        }
-      }
-    }
+    let board = Board::from_fen(pos);
+
+    let update = BoardStatus::update(
+      (wh as u32) << 5 | (ep as u32) << 4 | (wl as u32) << 3 | (wr as u32) << 2 | (bl as u32) << 1 | (br as u32));
+    
+    func(update , pos, board, depth)
   }
