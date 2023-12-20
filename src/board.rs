@@ -446,40 +446,40 @@ impl Board {
     if is_white {
       match piece {
         BoardPiece::Queen => {
-          return Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
-            wp ^ from, wn, wb, wr, wq ^ to, wk);
+          Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
+            wp ^ from, wn, wb, wr, wq ^ to, wk)
         }
         BoardPiece::Rook => {
-          return Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
-            wp ^ from, wn, wb, wr ^ to, wq, wk);
+          Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
+            wp ^ from, wn, wb, wr ^ to, wq, wk)
         }
         BoardPiece::Bishop => {
-          return Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
-            wp ^ from, wn, wb ^ to, wr, wq, wk);
+          Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
+            wp ^ from, wn, wb ^ to, wr, wq, wk)
         }
         BoardPiece::Knight => {
-          return Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
-            wp ^ from, wn ^ to, wb, wr, wq, wk);
+          Self::new(bp & rem, bn & rem, bb & rem, br & rem, bq & rem, bk,
+            wp ^ from, wn ^ to, wb, wr, wq, wk)
         }
         _ => Self::new(bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk)
       }
     } else {
       match piece {
         BoardPiece::Queen => {
-          return Self::new(bp ^ from, bn, bb, br, bq ^ to, bk,
-            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk);
+          Self::new(bp ^ from, bn, bb, br, bq ^ to, bk,
+            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk)
         }
         BoardPiece::Rook => {
-          return Self::new(bp ^ from, bn, bb, br ^ to, bq, bk,
-            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk);
+          Self::new(bp ^ from, bn, bb, br ^ to, bq, bk,
+            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk)
         }
         BoardPiece::Bishop => {
-          return Self::new(bp ^ from, bn, bb ^ to, br, bq, bk,
-            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk);
+          Self::new(bp ^ from, bn, bb ^ to, br, bq, bk,
+            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk)
         }
         BoardPiece::Knight => {
-          return Self::new(bp ^ from, bn ^ to, bb, br, bq, bk,
-            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk);
+          Self::new(bp ^ from, bn ^ to, bb, br, bq, bk,
+            wp & rem, wn & rem, wb & rem, wr & rem, wq & rem, wk)
         }
         _=> Self::new(bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk)
       }
