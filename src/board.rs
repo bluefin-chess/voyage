@@ -8,7 +8,7 @@ use crate::movegen;
 type Bit = u64;
 type Square = u64;
 type Map = u64;
-use std::arch::x86_64::{_tzcnt_u64, _blsr_u64, _popcnt64};
+use std::arch::x86_64::{_tzcnt_u64, _blsr_u64, _popcnt64, _blsi_u64};
 use std::fmt;
 
 pub fn square_of(x: u64) -> u64 {
@@ -30,6 +30,12 @@ pub fn bitloop<F>(mut x: u64, mut func: F) where F: FnMut(u64), {
     func(x);
     unsafe { x = _blsr_u64(x); }
   }
+}
+
+pub fn popbit(x: &mut u64) -> u64 {
+  let lsb: u64 = unsafe { _blsi_u64(*x) };
+  *x ^= lsb;
+  lsb
 }
 
 pub struct BoardStatus {
