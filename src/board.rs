@@ -11,7 +11,7 @@ type Map = u64;
 use std::arch::x86_64::{_tzcnt_u64, _blsr_u64, _popcnt64};
 use std::fmt;
 
-fn square_of(x: u64) -> u64 {
+pub fn square_of(x: u64) -> u64 {
   unsafe { _tzcnt_u64(x) }
 }
 

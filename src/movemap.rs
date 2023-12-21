@@ -2,17 +2,17 @@
 use std::arch::x86_64::_pext_u64;
 use self::{slider_pext::SLIDER_PEXT, slider_hash::SLIDER_HASH};
 mod check_between;
-mod pin_between;
-mod slider_h_cond;
-mod slider_v_cond;
-mod slider_hash;
-mod slider_pext;
-mod slider_d1_cond;
-mod slider_d2_cond;
-mod masks;
-mod attacks;
-mod offsets;
-mod seeds;
+pub mod pin_between;
+pub mod slider_h_cond;
+pub mod slider_v_cond;
+pub mod slider_hash;
+pub mod slider_pext;
+pub mod slider_d1_cond;
+pub mod slider_d2_cond;
+pub mod masks;
+pub mod attacks;
+pub mod offsets;
+pub mod seeds;
 
 struct SliderPext {
   attack_ptr: usize,
