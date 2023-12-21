@@ -15,13 +15,21 @@ pub fn square_of(x: u64) -> u64 {
   unsafe { _tzcnt_u64(x) }
 }
 
-pub fn bitloop(mut x: u64) -> u64 {
+// The original is a macro that has something happen on every looped value so this doensn't work
+/* pub fn bitloop(mut x: u64) {
   let mut res = 0;
   while x != 0 {
     res = x;
     unsafe { x = _blsr_u64(x); }
   }
   res
+} */
+
+pub fn bitloop<F>(mut x: u64, mut func: F) where F: FnMut(u64), {
+  while x != 0 {
+    func(x);
+    unsafe { x = _blsr_u64(x); }
+  }
 }
 
 pub struct BoardStatus {
