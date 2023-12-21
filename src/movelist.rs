@@ -221,4 +221,29 @@ impl Movelist {
     king_atk & !*kingban
   }
 
+  fn pawn_prune_left(pawn: &mut u64, pin_d1d2: u64, white: bool) {
+    let pinned: u64 = *pawn & pawn_invert_left(pin_d1d2 & pawns_notright(), white);
+    let unpinned: u64 = *pawn & !pin_d1d2;
+    *pawn = pinned | unpinned;
+  }
+
+  fn pawn_prune_right(pawn: &mut u64, pin_d1d2: u64, white: bool) {
+    let pinned: u64 = *pawn & pawn_invert_right(pin_d1d2 & pawns_notleft(), white);
+    let unpinned: u64 = *pawn & !pin_d1d2;
+    *pawn = pinned | unpinned;
+  }
+
+  // Original has pawn_prune_left_ep and pawn_prune_right_ep that are identical to pawn_prune_left and pawn_prune_right
+  fn pawn_prune_move(pawn: &mut u64, pin_hv: u64, white: bool) {
+    let pinned: u64 = *pawn & pawn_backward(pin_hv, white);
+    let unpinned: u64 = *pawn & !pin_hv;
+    *pawn = pinned | unpinned;
+  }
+
+  fn pawn_prune_move_2(pawn: &mut u64, pin_hv: u64, white: bool) {
+    let pinned: u64 = *pawn & pawn_backward_2(pin_hv, white);
+    let unpinned: u64 = *pawn & !pin_hv;
+    *pawn = pinned | unpinned;
+  }
+
 }
