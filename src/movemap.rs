@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 use std::arch::x86_64::_pext_u64;
 use self::{slider_pext::SLIDER_PEXT, slider_hash::SLIDER_HASH};
-mod check_between;
+pub mod check_between;
 pub mod pin_between;
 pub mod slider_h_cond;
 pub mod slider_v_cond;

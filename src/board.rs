@@ -15,6 +15,15 @@ pub fn square_of(x: u64) -> u64 {
   unsafe { _tzcnt_u64(x) }
 }
 
+pub fn bitloop(mut x: u64) -> u64 {
+  let mut res = 0;
+  while x != 0 {
+    res = x;
+    unsafe { x = _blsr_u64(x); }
+  }
+  res
+}
+
 pub struct BoardStatus {
   pub white_move: bool,
   pub has_enpassant_pawn: bool,
