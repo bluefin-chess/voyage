@@ -1,5 +1,5 @@
+#![allow(dead_code)] // For now
 use crate::movemap::*;
-use crate::movemap::lookup_hash::bishop;
 use crate::movemap::lookup_pext as lookup;
 use crate::movegen::*;
 use crate::board::{BoardStatus, Board, square_of, bitloop};

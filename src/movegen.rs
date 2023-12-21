@@ -1,3 +1,4 @@
+#![allow(dead_code)] // Functions are only used outside of this module
 use crate::board::Board;
 
 const FILE1: u64 = 0b1000000010000000100000001000000010000000100000001000000010000000u64;
