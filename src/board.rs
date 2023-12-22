@@ -420,7 +420,7 @@ impl Fen {
 
 }
 
-enum BoardPiece {
+pub enum BoardPiece {
   Pawn, Knight, Bishop, Rook, Queen, King
 }
 
@@ -537,8 +537,6 @@ impl Board {
     }
   }
 
-
-
   fn assert_board_move(before: &Board, after: &Board, is_taking: bool, is_white: bool) {
     fn blackcount(board: &Board) -> i32 {
       unsafe { _popcnt64(board.black as i64) }
@@ -574,7 +572,7 @@ impl Board {
     debug_assert!(knight_check == 0, "In check by knight after move.");
   }
 
-  fn move_piece(piece: BoardPiece, board: &Board, is_white: bool, is_taking: bool, from: u64, to: u64) -> Board {
+  pub fn move_piece(piece: BoardPiece, board: &Board, is_white: bool, is_taking: bool, from: u64, to: u64) -> Board {
     let (bp, bn, bb, br, bq, bk, wp, wn, wb, wr, wq, wk) = (
       board.b_pawn, board.b_knight, board.b_bishop, board.b_rook, board.b_queen, board.b_king,
       board.w_pawn, board.w_knight, board.w_bishop, board.w_rook, board.w_queen, board.w_king

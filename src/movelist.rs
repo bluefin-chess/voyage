@@ -32,7 +32,7 @@ impl Movestack {
   }
 }
 
-struct Movelist {
+pub struct Movelist {
   en_passant_target: u64,
   rook_pin: u64, // straight pins
   bishop_pin: u64, // diagonal pins
@@ -49,7 +49,7 @@ impl Movelist {
     }
   }
 
-  fn initstack(&mut self, status: &BoardStatus, board: &Board, depth: usize) {
+  fn init_stack(&mut self, status: &BoardStatus, board: &Board, depth: usize) {
     let (white, enemy) = (status.white_move, !status.white_move);
 
     self.movestack.king_attacks[depth] = lookup::king(square_of(king(board, white)));
