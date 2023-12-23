@@ -38,6 +38,10 @@ pub fn popbit(x: &mut u64) -> u64 {
   lsb
 }
 
+pub fn bitcount(x: u64) -> u64 {
+  unsafe { _popcnt64(x as i64) as u64 }
+}
+
 pub struct BoardStatus {
   pub white_move: bool,
   pub has_enpassant_pawn: bool,

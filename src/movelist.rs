@@ -2,7 +2,7 @@
 use crate::movemap::*;
 use crate::movemap::lookup_pext as lookup;
 use crate::movegen::*;
-use crate::board::{BoardStatus, Board, square_of, bitloop};
+use crate::board::{BoardStatus, Board, square_of, bitloop, bitcount};
 
 struct Movestack {
   king_attacks: [u64; 32], 
@@ -40,16 +40,16 @@ pub struct Movelist {
 }
 
 impl Movelist {
-  fn new() -> Self {
+  pub fn new(ep_init: u64) -> Self {
     Movelist {
-      en_passant_target: 0,
+      en_passant_target: ep_init,
       rook_pin: 0,
       bishop_pin: 0,
       movestack: Movestack::new(),
     }
   }
 
-  fn init_stack(&mut self, status: &BoardStatus, board: &Board, depth: usize) {
+  pub fn init_stack(&mut self, status: &BoardStatus, board: &Board, depth: usize) {
     let (white, enemy) = (status.white_move, !status.white_move);
 
     self.movestack.king_attacks[depth] = lookup::king(square_of(king(board, white)));
@@ -78,7 +78,7 @@ impl Movelist {
     }
   }
 
-  fn init(&mut self, ep_init: u64) {
+  pub fn init(&mut self, ep_init: u64) {
     self.en_passant_target = ep_init;
   }
 
@@ -246,4 +246,19 @@ impl Movelist {
     *pawn = pinned | unpinned;
   }
 
+  pub fn enumerate() -> u64 {
+    0 // placeholder return
+  }
+
+  pub fn count(&mut self, status: BoardStatus, board: Board) -> u64 {
+    let mut checkmask: u64 = self.movestack.check_status[1];
+    let mut kingban: u64 = self.movestack.e_king_attacks[1];
+    let kingatk: u64 = self.refresh(&status, 1, &board, &mut kingban, &mut checkmask);
+
+    if checkmask != 0 {
+      0 // return enumerate
+    } else {
+      bitcount(kingatk)
+    }
+  }
 }
