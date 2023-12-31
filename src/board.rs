@@ -178,12 +178,12 @@ impl BoardStatus {
   }
 
   // Enable en passant for all pawn moves, part of pseudolegal generation.
-  const fn pawn_push(&self) -> BoardStatus {
+  pub const fn pawn_push(&self) -> BoardStatus {
     Self::new(!self.white_move, true, self.w_castle_l, self.w_castle_r, self.b_castle_l, self.b_castle_r)
   }
 
   // Disable castling rights for whoever's king moved.F
-  const fn king_move(&self) -> BoardStatus {
+  pub const fn king_move(&self) -> BoardStatus {
     if self.white_move {
       Self::new(!self.white_move, false, false, false, self.b_castle_l, self.b_castle_r)
     } else {

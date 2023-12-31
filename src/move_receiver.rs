@@ -26,14 +26,14 @@ impl MoveCallback {
     if depth == 1 {
       self.perf_t1(status, board);
     } else {
-      return;
       // movelist::enumerate_moves(status, movereciever, board, depth);
     }
   }
 
-  fn kingmove(status: &BoardStatus, depth: u64, board: &Board, from: u64, to: u64) {
+  pub fn kingmove(&mut self, status: &BoardStatus, depth: u64, board: &Board, from: u64, to: u64) {
     let next: Board = Board::move_piece(
       BoardPiece::King, board, status.white_move, (to & enemy(board, status.white_move)) != 0, from, to
     );
+    self.perf_t(status.king_move(), depth - 1, next);
   }
 }

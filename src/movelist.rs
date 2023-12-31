@@ -1,8 +1,10 @@
-#![allow(dead_code)] // For now
+#![allow(dead_code)] 
+// For now
 use crate::movemap::*;
 use crate::movemap::lookup_pext as lookup;
 use crate::movegen::*;
 use crate::board::{BoardStatus, Board, square_of, bitloop, bitcount};
+use crate::move_receiver::MoveCallback;
 
 struct Movestack {
   king_attacks: [u64; 32], 
@@ -246,8 +248,28 @@ impl Movelist {
     *pawn = pinned | unpinned;
   }
 
-  pub fn enumerate() -> u64 {
+  pub fn enumerate(&mut self, status: &BoardStatus, move_callback: MoveCallback, depth: u64, 
+    board: &Board, kingatk: u64, kingban: u64, checkmask: u64) -> u64 {
     0 // placeholder return
+  }
+  
+  pub fn enumerate_moves(&mut self, status: &BoardStatus, move_callback: MoveCallback, depth: u64, board: &Board) {
+    let mut checkmask = self.movestack.check_status[depth as usize];
+    let mut kingban = self.movestack.e_king_attacks[depth as usize];
+    self.movestack.king_attacks[(depth - 1) as usize] = kingban;
+    let kingatk = self.refresh(status, depth, board, &mut kingban, &mut checkmask);
+
+    if checkmask != 0 {
+      self.enumerate(status, move_callback, depth, board, kingatk, kingban, checkmask);
+    } else {
+      bitloop(kingatk, |kingatk: u64|
+        {
+          let square = square_of(kingatk);
+          self.movestack.e_king_attacks[(depth - 1) as usize] = lookup::king(square);
+          MoveCallback::kingmove(status, depth, board, king(board, status.white_move), 1u64 << square);
+        }
+      )
+    }
   }
 
   pub fn count(&mut self, status: BoardStatus, board: Board) -> u64 {
